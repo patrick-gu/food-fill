@@ -1,9 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import cv from "@techstark/opencv-js";
-
-import simpleBlobDetector from "@/vision/simple-blob-detector";
 import { twMerge } from "tailwind-merge";
 
 export default function Home() {
@@ -32,79 +29,12 @@ export default function Home() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (!cameraDataCanvas) return;
 
-        // const image = cv.imread(cameraDataCanvas);
-        // const blobs = simpleBlobDetector(image, {
-        //     filterByColor: false,
-        //     minThreshold: 30,
-        //     // minRepeatability: 1,
-        //     filterByArea: true,
-        //     minArea: 100,
-        //     maxArea: 10000,
-        //     filterByInertia: false,
-        //     filterByConvexity: true,
-        //     minConvexity: 0.5,
-        // });
-        // console.log(blobs);
         const getData = (y: number, x: number) => {
             const r = cameraData.data[(y * width + x) * 4];
             const g = cameraData.data[(y * width + x) * 4 + 1];
             const b = cameraData.data[(y * width + x) * 4 + 2];
             return [r, g, b];
         };
-        // for (const blob of blobs) {
-        //     const [r, g, b] = getData(
-        //         Math.floor(blob.pt.y),
-        //         Math.floor(blob.pt.x),
-        //     );
-        //     ctx.fillStyle = `rgba(${r},${g},${b},1)`;
-        //     // ctx.beginPath();
-        //     // ctx.arc(blob.pt.x, blob.pt.y, blob.size, 0, 360);
-        //     // ctx.fill();
-        // }
-        // console.log(
-        // );
-
-        // let minDist = Infinity;
-        // let minX = -1;
-        // let minY = -1;
-
-        // const sobelX = [
-        //     [1, 0, -1],
-        //     [2, 0, -2],
-        //     [1, 0, -1],
-        // ];
-        // const sobelY = [
-        //     [1, 2, 1],
-        //     [0, 0, 0],
-        //     [-1, -2, -1],
-        // ];
-
-        // for (let y = 0; y < height; y++) {
-        //     for (let x = 0; x < width; x++) {
-        //         const [r, g, b] = getData(y, x);
-        //         let sx = 0,
-        //             sy = 0;
-        //         for (let i = -1; i <= 1; i++) {
-        //             for (let j = -1; j <= 1; j++) {
-        //                 const y1 = y + i;
-        //                 const x1 = x + j;
-        //                 const [r1, g1, b1] =
-        //                     0 <= y1 && y1 < height && 0 <= x1 && x1 < width
-        //                         ? getData(y1, x1)
-        //                         : [r, g, b];
-        //                 sx +=
-        //                     sobelX[1 + i][1 + j] *
-        //                     Math.floor((r1 + g1 + b1) / 3);
-        //                 sy +=
-        //                     sobelY[1 + i][1 + j] *
-        //                     Math.floor((r1 + g1 + b1) / 3);
-        //             }
-        //         }
-        //         const s = Math.sqrt(sx ** 2 + sy ** 2);
-        //         ctx.fillStyle = `rgb(${s},${s},${s})`;
-        //         ctx.fillRect(x, y, 1, 1);
-        //     }
-        // }
 
         let orangeGroups: [number, number][] = [];
         let greenGroups: [number, number][] = [];
@@ -244,15 +174,7 @@ function colorDistance(
     [ar, ag, ab]: [number, number, number],
     [br, bg, bb]: [number, number, number],
 ) {
-    // return Math.min(
-    //     255,
-    //     Math.sqrt((ar - br) ** 2 + (ag - bg) ** 2 + (ab - bb) ** 2),
-    // );
-
-    // return Math.min(
-    // 255,
     return Math.abs(ar - br) + Math.abs(ag - bg) + Math.abs(ab - bb);
-    // );
 }
 
 function PointInfo({
@@ -408,7 +330,6 @@ function CameraVideo({
                 );
                 console.log(videoRef.current!.videoWidth);
             }}
-            // onTimeUpdate={() => console.log(new Date().getTime())}
         ></video>
     );
 }
