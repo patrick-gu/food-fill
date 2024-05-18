@@ -24,19 +24,24 @@ export default async function handler(req, res) {
       serviceUrl: 'our-ibm-wat-service-url',
     });
 
-    const imagePaths = ['/path/to/image1.jpg', '/path/to/image2.jpg']
+    const imagePaths = ['/path/to/image1.jpg', '/path/to/image2.jpg'] // can continue to add more
     const results = [];
 
-    for (const imagePath of imagePaths) {
+    for (let i = 0; i < imagePaths.length; i++) {
         const classifyParams = {
-          imagesFile: fs.createReadStream(imagePath),
+          imagesFile: fs.createReadStream(imagePaths[i]),
           classifierIds: ['food'],
         };
 
-    const classificationResult = await visualRecognition.classify(classifyParams);
-    results.push(classificationResult);
+        const classificationResult = await visualRecognition.classify(classifyParams);
+        results.push(classificationResult);
+
+        if ((i + 1) % 20 === 0){
+            await new Promise(resolve => setTimeout(resolve, 60000)); // if 20 images sent, wait 1 min
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 2000)); // if not, wait 2 seconds
+        }
     }
   });
-  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 res.status(200).json({ results });
