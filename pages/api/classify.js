@@ -24,12 +24,19 @@ export default async function handler(req, res) {
       serviceUrl: 'our-ibm-wat-service-url',
     });
 
-    const classifyParams = {
-      imagesFile: fs.createReadStream(req.file.path),
-      classifierIds: ['food'],
-    };
+    const imagePaths = ['/path/to/image1.jpg', '/path/to/image2.jpg']
+    const results = [];
+
+    for (const imagePath of imagePaths) {
+        const classifyParams = {
+          imagesFile: fs.createReadStream(imagePath),
+          classifierIds: ['food'],
+        };
 
     const classificationResult = await visualRecognition.classify(classifyParams);
-    res.status(200).json(classificationResult);
+    results.push(classificationResult);
+    }
   });
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
+res.status(200).json({ results });
