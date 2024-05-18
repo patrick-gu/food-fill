@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import cv from "@techstark/opencv-js";
 
 import simpleBlobDetector from "@/vision/simple-blob-detector";
+import { twMerge } from "tailwind-merge";
 
 export default function Home() {
     const [cameraDataCanvas, setCameraDataCanvas] =
@@ -14,7 +15,8 @@ export default function Home() {
     const [cameraData, setCameraData] = useState<ImageData | undefined>();
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-    const [orangeColor, setOrangeColor] = useState("#F47624");
+    const [orangeColor, setOrangeColor] = useState("#f47624");
+    const [greenColor, setGreenColor] = useState("#12c2f5");
 
     const [orangePoints, setOrangePoints] = useState<[number, number][]>([]);
     const [greenPoints, setGreenPoints] = useState<[number, number][]>([]);
@@ -127,10 +129,18 @@ export default function Home() {
                 }
                 (sr /= 9), (sg /= 9), (sb /= 9);
                 // [118, 174, 236] purple
-                const orange: [number, number, number] = [244, 118, 36];
-                const green: [number, number, number] = [0, 247, 171];
+                const orange: [number, number, number] = [
+                    parseInt(orangeColor.slice(1, 3), 16),
+                    parseInt(orangeColor.slice(3, 5), 16),
+                    parseInt(orangeColor.slice(5, 7), 16),
+                ];
+                const green: [number, number, number] = [
+                    parseInt(greenColor.slice(1, 3), 16),
+                    parseInt(greenColor.slice(3, 5), 16),
+                    parseInt(greenColor.slice(5, 7), 16),
+                ];
                 if (
-                    colorDistance([sr, sg, sb], orange) <= 50 &&
+                    colorDistance([sr, sg, sb], orange) <= 100 &&
                     orangeGroups.every(
                         ([ox, oy]) =>
                             Math.sqrt((x - ox) ** 2 + (y - oy) ** 2) >= 50,
@@ -143,13 +153,13 @@ export default function Home() {
                     orangeGroups.push([x, y]);
                 }
                 if (
-                    colorDistance([sr, sg, sb], green) <= 50 &&
+                    colorDistance([sr, sg, sb], green) <= 100 &&
                     greenGroups.every(
                         ([ox, oy]) =>
                             Math.sqrt((x - ox) ** 2 + (y - oy) ** 2) >= 50,
                     )
                 ) {
-                    ctx.fillStyle = `#00ff0080`;
+                    ctx.fillStyle = `#0000ff80`;
                     ctx.beginPath();
                     ctx.arc(x, y, 20, 0, 360);
                     ctx.fill();
@@ -160,7 +170,7 @@ export default function Home() {
 
         setOrangePoints(orangeGroups);
         setGreenPoints(greenGroups);
-    }, [cameraDataCanvas, cameraData]);
+    }, [orangeColor, greenColor, cameraDataCanvas, cameraData]);
 
     return (
         <main className="w-screen h-screen relative">
@@ -189,12 +199,21 @@ export default function Home() {
             </div>
             <div className="w-full h-full absolute flex justify-between">
                 <div className="bg-white/50 w-96 h-full space-y-4 p-4">
-                    <h2 className="text-center text-2xl font-bold">Logs</h2>
+                    <h2 className="text-center text-2xl font-bold">Current</h2>
+                    <input
+                        type="color"
+                        value={orangeColor}
+                        onChange={(event) => setOrangeColor(event.target.value)}
+                    />
+                    <input
+                        type="color"
+                        value={greenColor}
+                        onChange={(event) => setGreenColor(event.target.value)}
+                    />
                     <PointInfo
                         orangePoints={orangePoints}
                         greenPoints={greenPoints}
                     />
-                    <p className="text-center">this is a test log</p>
                 </div>
                 <div className="bg-white/50 w-96 h-full flex flex-col gap-4 p-4">
                     <h2 className="text-center text-2xl font-bold">
@@ -243,11 +262,12 @@ function PointInfo({
     orangePoints: [number, number][];
     greenPoints: [number, number][];
 }) {
-    if (orangePoints.length !== 2) {
+    if (orangePoints.length !== 2 || greenPoints.length !== 1) {
         return (
             <div className="w-full h-36">
                 Please ensure that the utensil points are in the video and that
-                there are no extra points! Orange points: {orangePoints.length}
+                there are no extra points! Orange points: {orangePoints.length}{" "}
+                (should be 2). Green points: {greenPoints.length} (should be 1)
             </div>
         );
     }
@@ -259,20 +279,73 @@ function PointInfo({
         orangePoints[0][1] < orangePoints[1][1]
             ? orangePoints[1]
             : orangePoints[0];
-    const ang = Math.atan2(upper[1] - lower[1], Math.abs(upper[0] - lower[0]));
+    const ang = Math.atan2(upper[1] - lower[1], upper[0] - lower[0]);
+    const angDegrees = (ang / Math.PI) * 180;
+
+    const angOk = Math.abs(angDegrees - 90) <= 20;
+
+    let greenSlide = null;
+    let extCm = null;
+    let massG = null;
+    if (greenPoints.length === 1) {
+        const green = greenPoints[0];
+        const dispVec = [upper[0] - lower[0], upper[1] - lower[1]];
+        const lToG = [green[0] - lower[0], green[1] - lower[1]];
+        greenSlide =
+            (dispVec[0] * lToG[0] + dispVec[1] * lToG[1]) /
+            (dispVec[0] * dispVec[0] + dispVec[1] * dispVec[1]);
+        extCm = (greenSlide - 0.5) * 24;
+        massG = 3.75 * extCm;
+    }
 
     return (
-        <div className="w-full">
-            <div className="w-36 h-24">
+        <div className="w-full flex flex-col">
+            <p className="text-center">
+                Angle:{" "}
+                {angOk
+                    ? `${Math.round(angDegrees)} degrees, ok`
+                    : `${Math.round(angDegrees)} degrees, please get close to 90`}
+            </p>
+            <p>
+                {extCm !== null
+                    ? `${Math.round(extCm * 1000) / 1000} cm extension`
+                    : "where is the green one"}
+            </p>
+            <p>
+                {massG !== null
+                    ? `${Math.round(massG)} g mass`
+                    : "where is the green one"}
+            </p>
+            <div className="w-36 h-24 flex justify-center items-center">
                 <div
-                    className="w-12 h-2 border border-black"
+                    className="w-24 h-4 relative"
                     style={{
                         transform: `rotate(-${ang}rad)`,
                     }}
-                ></div>
+                >
+                    <div
+                        className={twMerge(
+                            "w-24 h-4 border border-black absolute",
+                            angOk ? "bg-green-500" : "bg-red-500",
+                        )}
+                    ></div>
+                    {greenSlide !== null && (
+                        <div
+                            className="w-4 h-4 bg-yellow-500"
+                            style={{
+                                transform: `translateX(calc(${1 - greenSlide} * 6rem))`,
+                            }}
+                        ></div>
+                    )}
+                </div>
             </div>
         </div>
     );
+}
+
+function proj(d: [number, number], x: [number, number]) {
+    const coeff = (x[0] * d[0] + x[1] * d[1]) / (d[0] * d[0] + d[1] * d[1]);
+    return [coeff * d[0], coeff * d[1]];
 }
 
 function CameraVideo({
