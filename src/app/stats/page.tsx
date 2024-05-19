@@ -23,15 +23,15 @@ ChartJS.register(
   );
 
   const data = {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+    labels: ['3', '7', '8', '15', '18', '19'],
     datasets: [
       {
-        label: 'My First dataset',
-        backgroundColor: 'rgba(75,192,192,0.2)',
-        borderColor: 'rgba(75,192,192,1)',
+        label: 'Calories',
+        backgroundColor: 'rgba(65,105,225,0.5)',
+        borderColor: 'rgba(65,105,225,1)',
         borderWidth: 1,
-        hoverBackgroundColor: 'rgba(75,192,192,0.4)',
-        hoverBorderColor: 'rgba(75,192,192,1)',
+        hoverBackgroundColor: 'rgba(65,105,225,0.5)',
+        hoverBorderColor: 'rgba(65,105,225,0.5)',
         data: [65, 59, 80, 81, 56, 55, 40],
       },
     ],
@@ -45,15 +45,15 @@ ChartJS.register(
       },
       title: {
         display: true,
-        text: 'Chart.js Line Chart',
+        text: 'Calories for the month of May 2024',
       },
     },
   };
   
   const Home: React.FC = () => {
     return (
-      <div>
-        <h1>My Chart</h1>
+      <div style={{ border: '1px solid #000', padding: '20px', boxSizing: 'border-box' }}>
+        <h1></h1>
         <Line data={data} options={options} />
       </div>
     );
