@@ -6,11 +6,10 @@ import Link from 'next/link';
 export default function WelcomePage() {
 
     const [name, setName] = useState('');
-    const [age, setAge] = useState(0);
-    const [height, setHeight] = useState(0);
-    const [weight, setWeight] = useState(0);
-    const [id, setId] = useState('6649b0d018a451d672aa0c18');
-    const [edit, setEdit] = useState(false);
+    const [age, setAge] = useState('');
+    const [height, setHeight] = useState('');
+    const [weight, setWeight] = useState('');
+    const [id, setId] = useState('6649fb043336782fe87c8652');
 
     useEffect(() => {
         fetchInfo();
@@ -24,6 +23,7 @@ export default function WelcomePage() {
             }
         });
         const data = await response.json();
+        console.log(data);
 
         setName(data.data.name);
         setAge(data.data.age);
