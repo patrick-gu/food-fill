@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function WelcomePage() {
@@ -9,6 +9,26 @@ export default function WelcomePage() {
     const [age, setAge] = useState('');
     const [height, setHeight] = useState('');
     const [weight, setWeight] = useState('');
+    const [id, setId] = useState('6649b0d018a451d672aa0c18');
+
+    useEffect(() => {
+        fetchInfo();
+    }, []);
+
+    const fetchInfo = async () => {
+        const response = await fetch(`https://us-west-2.aws.neurelo.com/rest/missions/${id}`, {
+            method: "GET",
+            headers: {
+                "X-API-KEY": "neurelo_9wKFBp874Z5xFw6ZCfvhXdQI0n/IuXyaFnE2pRTKQKV1kIYj2NATYl+L0t52jsR3dHeN/1e+hI+j5Fc1Wh9ozkWhNZt7XhLhxhsp5rJn5oJKz54N2r0UA3Z1vYstHVYlb06mu90fZHBJI+axoLkdT7ooxhL9WN6TnK6qHPSFbrQijhkbTf35C7MeKwT1HOth_DKYSPo6Y4FGUXFdvVb3TcGHezJQ95M+jh9WG/Do6KVw=",
+            }
+        });
+        const data = await response.json();
+
+        setName(data.data.name);
+        setAge(data.data.age);
+        setHeight(data.data.height);
+        setWeight(data.data.weight);
+    };
 
     const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setName(event.target.value);
