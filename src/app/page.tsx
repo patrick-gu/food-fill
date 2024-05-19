@@ -20,8 +20,10 @@ export default function Home() {
     };
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-    const [orangeColor, setOrangeColor] = useState("#f47624");
-    const [greenColor, setGreenColor] = useState("#12c2f5");
+    // const [orangeColor, setOrangeColor] = useState("#f47624");
+    // const [greenColor, setGreenColor] = useState("#12c2f5");
+    const [orangeColor, setOrangeColor] = useState("#ff7500");
+    const [greenColor, setGreenColor] = useState("#3aa6cd");
 
     const [orangePoints, setOrangePoints] = useState<[number, number][]>([]);
     const [greenPoints, setGreenPoints] = useState<[number, number][]>([]);
