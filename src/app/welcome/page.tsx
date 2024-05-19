@@ -156,9 +156,7 @@ export default function WelcomePage() {
                             />
                         </div>
                     </div>
-                    <button onClick={handleEditClick}>
-                        {edit ? "Save" : "Edit"}
-                    </button>
+                    <button style={{ backgroundColor: 'blue', color: 'white', padding: '10px 20px', fontSize: '16px', borderRadius: '5px' }}>{edit ? "Save" : "Edit"}</button>
                 </div>
             </div>
 
