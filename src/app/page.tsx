@@ -1,9 +1,30 @@
 "use client";
 
+import {
+    BoundingBox,
+    Detection,
+    FilesetResolver,
+    ObjectDetector,
+    ObjectDetectorResult,
+} from "@mediapipe/tasks-vision";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 export default function Home() {
+    return <HomeView />;
+}
+
+const disp = {
+    apple: "🍎 Apple",
+    orange: "🍊 Orange",
+};
+
+const cals = {
+    apple: 0.6,
+    orange: 0.4,
+};
+
+function HomeView() {
     const [cameraDataCanvas, setCameraDataCanvas] =
         useState<HTMLCanvasElement | null>(null);
     const cameraDataCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -12,12 +33,8 @@ export default function Home() {
         setCameraDataCanvas(canvas);
         cameraDataCanvasRef.current = canvas;
     }, []);
-    const cameraDataRef = useRef<ImageData | undefined>();
-    const [cameraData, setCameraDataRaw] = useState<ImageData | undefined>();
-    const setCameraData = (cameraData: ImageData | undefined) => {
-        cameraDataRef.current = cameraData;
-        setCameraDataRaw(cameraData);
-    };
+
+    const [cameraData, setCameraData] = useState<ImageData | undefined>();
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     // const [orangeColor, setOrangeColor] = useState("#f47624");
@@ -28,7 +45,18 @@ export default function Home() {
     const [orangePoints, setOrangePoints] = useState<[number, number][]>([]);
     const [greenPoints, setGreenPoints] = useState<[number, number][]>([]);
 
-    const [recog, setRecog] = useState<{ label: string; score: number }[]>([]);
+    // const [recog, setRecog] = useState<{ label: string; score: number }[]>([]);
+
+    const detectionRef = useRef<ObjectDetectorResult>({
+        detections: [],
+    });
+    const [detection, setDetectionInner] = useState<ObjectDetectorResult>({
+        detections: [],
+    });
+    const setDetection = (det: ObjectDetectorResult) => {
+        setDetectionInner(det);
+        detectionRef.current = det;
+    };
 
     useEffect(() => {
         if (!cameraData) return;
@@ -42,11 +70,16 @@ export default function Home() {
         if (!cameraDataCanvas) return;
 
         const getData = (y: number, x: number) => {
-            const r = cameraData.data[(y * width + x) * 4];
-            const g = cameraData.data[(y * width + x) * 4 + 1];
-            const b = cameraData.data[(y * width + x) * 4 + 2];
+            const r = cameraData.data[(y * width + width - x) * 4];
+            const g = cameraData.data[(y * width + width - x) * 4 + 1];
+            const b = cameraData.data[(y * width + width - x) * 4 + 2];
             return [r, g, b];
         };
+
+        const parsedDets = detectionRef.current.detections
+            .map(parseDetection)
+            .filter((v) => v)
+            .map((v) => v!);
 
         let orangeGroups: [number, number][] = [];
         let greenGroups: [number, number][] = [];
@@ -70,6 +103,19 @@ export default function Home() {
                     }
                 }
                 (sr /= 9), (sg /= 9), (sb /= 9);
+
+                if (
+                    parsedDets.some(
+                        ({ boundingBox }) =>
+                            boundingBox.originX - 25 <= x &&
+                            x <= boundingBox.originX + boundingBox.width + 25 &&
+                            boundingBox.originY - 25 <= y &&
+                            y <= boundingBox.originY + boundingBox.height + 25,
+                    )
+                ) {
+                    continue;
+                }
+
                 // [118, 174, 236] purple
                 const orange: [number, number, number] = [
                     parseInt(orangeColor.slice(1, 3), 16),
@@ -82,7 +128,7 @@ export default function Home() {
                     parseInt(greenColor.slice(5, 7), 16),
                 ];
                 if (
-                    colorDistance([sr, sg, sb], orange) <= 100 &&
+                    colorDistance([sr, sg, sb], orange) <= 75 &&
                     orangeGroups.every(
                         ([ox, oy]) =>
                             Math.sqrt((x - ox) ** 2 + (y - oy) ** 2) >= 50,
@@ -112,27 +158,121 @@ export default function Home() {
 
         setOrangePoints(orangeGroups);
         setGreenPoints(greenGroups);
+
+        for (const det of detectionRef.current.detections) {
+            const p = parseDetection(det);
+            if (p) {
+                if (p.cat === "apple") {
+                    ctx.strokeStyle = "#ff2e2e";
+                    ctx.strokeRect(
+                        p.boundingBox.originX,
+                        p.boundingBox.originY,
+                        p.boundingBox.width,
+                        p.boundingBox.height,
+                    );
+                } else if (p.cat === "orange") {
+                    ctx.strokeStyle = "#e16200";
+                    ctx.strokeRect(
+                        p.boundingBox.originX,
+                        p.boundingBox.originY,
+                        p.boundingBox.width,
+                        p.boundingBox.height,
+                    );
+                }
+                ctx.strokeText(
+                    disp[p.cat],
+                    p.boundingBox.originX,
+                    p.boundingBox.originY,
+                );
+            }
+        }
     }, [orangeColor, greenColor, cameraDataCanvas, cameraData]);
 
-    const intervalRef = useRef(0);
+    // const intervalRef = useRef(0);
 
+    // useEffect(() => {
+    //     intervalRef.current = setInterval(() => {
+    //         cameraDataCanvasRef.current?.toBlob(async (blob) => {
+    //             const res = await fetch("http://localhost:5000/recognize", {
+    //                 method: "POST",
+    //                 body: blob,
+    //                 headers: {
+    //                     "content-type": "image/png",
+    //                 },
+    //             });
+    //             if (res.ok) {
+    //                 setRecog(await res.json());
+    //             }
+    //         });
+    //     }, 1000) as any;
+    //     return () => clearInterval(intervalRef.current);
+    // }, []);
+
+    let detOne: { cat: "apple" | "orange" } | null = null;
+    const parsedDets = detection.detections
+        .map(parseDetection)
+        .filter((v) => v)
+        .map((v) => v!);
+    if (parsedDets.length === 1) {
+        detOne = parsedDets[0];
+    }
+
+    let data: Data = {
+        orangeCount: orangePoints.length,
+        greenCount: greenPoints.length,
+        orange: null,
+        green: null,
+    };
+    if (orangePoints.length === 2) {
+        const lower =
+            orangePoints[0][1] < orangePoints[1][1]
+                ? orangePoints[0]
+                : orangePoints[1];
+        const upper =
+            orangePoints[0][1] < orangePoints[1][1]
+                ? orangePoints[1]
+                : orangePoints[0];
+        const ang = Math.atan2(upper[1] - lower[1], upper[0] - lower[0]);
+        const angDegrees = (ang / Math.PI) * 180;
+        const angOk = Math.abs(angDegrees - 90) <= 20;
+        data.orange = {
+            lower,
+            upper,
+            ang,
+            angDegrees,
+            angOk,
+        };
+
+        if (greenPoints.length === 1) {
+            const green = greenPoints[0];
+            const dispVec = [upper[0] - lower[0], upper[1] - lower[1]];
+            const lToG = [green[0] - lower[0], green[1] - lower[1]];
+            const greenSlide =
+                (dispVec[0] * lToG[0] + dispVec[1] * lToG[1]) /
+                (dispVec[0] * dispVec[0] + dispVec[1] * dispVec[1]);
+            const extCm = (greenSlide - 0.5) * 24;
+            const massG = Math.max(3.75 * extCm, 0);
+            data.green = { greenSlide, extCm, massG };
+        }
+    }
+
+    // const [lastFood, setLastFood] = useState("");
+    const [lastMassG, setLastMassG] = useState(0);
     useEffect(() => {
-        intervalRef.current = setInterval(() => {
-            cameraDataCanvasRef.current?.toBlob(async (blob) => {
-                const res = await fetch("http://localhost:5000/recognize", {
-                    method: "POST",
-                    body: blob,
-                    headers: {
-                        "content-type": "image/png",
-                    },
-                });
-                if (res.ok) {
-                    setRecog(await res.json());
-                }
-            });
-        }, 1000) as any;
-        return () => clearInterval(intervalRef.current);
-    }, []);
+        if (data.green?.massG) {
+            setLastMassG(Math.round(data.green.massG));
+        }
+    }, [data]);
+    const [lastFood, setLastFood] = useState<"apple" | "orange" | "">("");
+    useEffect(() => {
+        if (detOne) {
+            setLastFood(detOne.cat);
+        }
+    }, [detOne]);
+
+    const [items, setItems] = useState<
+        { food: "apple" | "orange"; massG: number; cals: number }[]
+    >([]);
 
     return (
         <main className="w-screen h-screen relative">
@@ -141,6 +281,7 @@ export default function Home() {
                     <CameraVideo
                         setImageData={setCameraData}
                         canvas={cameraDataCanvas}
+                        setDetectionResult={setDetection}
                     />
                 </div>
             )}
@@ -150,7 +291,7 @@ export default function Home() {
                         ref={canvasRef}
                         width={cameraData.width}
                         height={cameraData.height}
-                        className="object-contain h-full w-full -scale-x-100"
+                        className="object-contain h-full w-full"
                     ></canvas>
                 </div>
             )}
@@ -172,17 +313,20 @@ export default function Home() {
                         value={greenColor}
                         onChange={(event) => setGreenColor(event.target.value)}
                     />
-                    <PointInfo
-                        orangePoints={orangePoints}
-                        greenPoints={greenPoints}
-                    />
-                    <h3 className="text-xl">Food recognized</h3>
-                    <ul className="list-disc">
-                        {recog.map((obj) => (
-                            <li key={JSON.stringify(obj)}>
-                                {obj.label}: {obj.score}
-                            </li>
-                        ))}
+                    <PointInfo data={data} />
+                    <ul className="list-disc list-inside">
+                        {detection.detections
+                            .map((det) =>
+                                det.categories
+                                    .map(
+                                        (cat) =>
+                                            `${cat.categoryName === "donut" ? "apple" : cat.categoryName} ${cat.score}`,
+                                    )
+                                    .join(","),
+                            )
+                            .map((v) => (
+                                <li key={v}>{v}</li>
+                            ))}
                     </ul>
                 </div>
                 <div className="bg-white/50 w-96 h-full flex flex-col gap-4 p-4">
@@ -192,23 +336,118 @@ export default function Home() {
                     <p className="text-center">
                         You&apos;ve been eating for {<Timer />}
                     </p>
+                    <div className="flex gap-2 items-center">
+                        <button
+                            className="px-4 py-2 rounded bg-blue-400 text-xl font-bold disabled:bg-gray-400"
+                            disabled={!lastFood || !lastMassG}
+                            onClick={() => {
+                                if (!lastFood) return;
+                                setItems([
+                                    ...items,
+                                    {
+                                        food: lastFood,
+                                        massG: lastMassG,
+                                        cals: Math.round(
+                                            cals[lastFood] * lastMassG,
+                                        ),
+                                    },
+                                ]);
+                            }}
+                        >
+                            Add
+                        </button>
+                        {lastFood && (
+                            <p className="text-xl font-bold">
+                                {disp[lastFood]}
+                                {
+                                    <>
+                                        {" "}
+                                        | {lastMassG} g |{" "}
+                                        {Math.round(cals[lastFood] * lastMassG)}{" "}
+                                        Cal
+                                    </>
+                                }
+                            </p>
+                        )}
+                    </div>
                     <ul className="flex-grow">
-                        <li className="p-4 flex justify-between gap-4">
-                            <h3 className="text-lg font-bold">🍎 Apple</h3>
-                            <p>200 g | 300 Cal</p>
-                        </li>
-                        <hr />
+                        {items.map((obj) => (
+                            <>
+                                <li
+                                    className="p-4 flex justify-between gap-4"
+                                    key={JSON.stringify(obj)}
+                                >
+                                    <h3 className="text-lg font-bold">
+                                        {disp[obj.food]}
+                                    </h3>
+                                    <p>
+                                        {obj.massG} g | {obj.cals} Cal
+                                    </p>
+                                </li>
+                                <hr />
+                            </>
+                        ))}
                     </ul>
                     <hr />
                     <div className="flex justify-between">
-                        <h3 className="text-xl">Total</h3>
-                        <p>500 g | 800 Cal</p>
+                        <h3 className="text-xl font-bold">Total</h3>
+                        <p className="text-xl font-bold">
+                            {items
+                                .map(({ massG }) => massG)
+                                .reduce((a, b) => a + b, 0)}{" "}
+                            g |{" "}
+                            {items
+                                .map(({ cals }) => cals)
+                                .reduce((a, b) => a + b, 0)}{" "}
+                            Cal
+                        </p>
                     </div>
                 </div>
             </div>
         </main>
     );
 }
+
+function parseDetection(detection: Detection):
+    | {
+          cat: "apple" | "orange";
+          boundingBox: BoundingBox;
+      }
+    | undefined {
+    const cat = detection.categories.reduce((a, b) =>
+        a.score >= b.score ? a : b,
+    );
+
+    if (cat.categoryName === "apple" || cat.categoryName === "donut") {
+        // apparently apples look like donuts
+        return {
+            cat: "apple",
+            boundingBox: detection.boundingBox!,
+        };
+    } else if (cat.categoryName === "orange") {
+        return {
+            cat: "orange",
+            boundingBox: detection.boundingBox!,
+        };
+    }
+}
+
+type Data = {
+    orangeCount: number;
+    greenCount: number;
+    orange: {
+        lower: [number, number];
+        upper: [number, number];
+        ang: number;
+        angDegrees: number;
+        angOk: boolean;
+    } | null;
+    green: {
+        greenSlide: number;
+        extCm: number;
+        massG: number;
+    } | null;
+};
 
 function colorDistance(
     [ar, ag, ab]: [number, number, number],
@@ -217,85 +456,57 @@ function colorDistance(
     return Math.abs(ar - br) + Math.abs(ag - bg) + Math.abs(ab - bb);
 }
 
-function PointInfo({
-    orangePoints,
-    greenPoints,
-}: {
-    orangePoints: [number, number][];
-    greenPoints: [number, number][];
-}) {
-    if (orangePoints.length !== 2 || greenPoints.length !== 1) {
+function PointInfo({ data }: { data: Data }) {
+    if (!data.orange) {
         return (
             <div className="w-full h-36">
                 Please ensure that the utensil points are in the video and that
-                there are no extra points! Orange points: {orangePoints.length}{" "}
-                (should be 2). Green points: {greenPoints.length} (should be 1)
+                there are no extra points! Orange points: {data.orangeCount}{" "}
+                (should be 2). Blue points: {data.greenCount} (should be 1)
             </div>
         );
-    }
-    const lower =
-        orangePoints[0][1] < orangePoints[1][1]
-            ? orangePoints[0]
-            : orangePoints[1];
-    const upper =
-        orangePoints[0][1] < orangePoints[1][1]
-            ? orangePoints[1]
-            : orangePoints[0];
-    const ang = Math.atan2(upper[1] - lower[1], upper[0] - lower[0]);
-    const angDegrees = (ang / Math.PI) * 180;
-
-    const angOk = Math.abs(angDegrees - 90) <= 20;
-
-    let greenSlide = null;
-    let extCm = null;
-    let massG = null;
-    if (greenPoints.length === 1) {
-        const green = greenPoints[0];
-        const dispVec = [upper[0] - lower[0], upper[1] - lower[1]];
-        const lToG = [green[0] - lower[0], green[1] - lower[1]];
-        greenSlide =
-            (dispVec[0] * lToG[0] + dispVec[1] * lToG[1]) /
-            (dispVec[0] * dispVec[0] + dispVec[1] * dispVec[1]);
-        extCm = (greenSlide - 0.5) * 24;
-        massG = 3.75 * extCm;
     }
 
     return (
         <div className="w-full flex flex-col">
             <p className="text-center">
                 Angle:{" "}
-                {angOk
-                    ? `${Math.round(angDegrees)} degrees, ok`
-                    : `${Math.round(angDegrees)} degrees, please get close to 90`}
+                {data.orange.angOk
+                    ? `${Math.round(data.orange.angDegrees)} degrees, ok`
+                    : `${Math.round(data.orange.angDegrees)} degrees, please get close to 90`}
             </p>
-            <p>
-                {extCm !== null
-                    ? `${Math.round(extCm * 1000) / 1000} cm extension`
-                    : "where is the green one"}
-            </p>
-            <p>
-                {massG !== null
-                    ? `${Math.round(massG)} g mass`
-                    : "where is the green one"}
-            </p>
+            {data.green && (
+                <>
+                    <p>
+                        {data.green.extCm !== null
+                            ? `${Math.round(data.green.extCm * 1000) / 1000} cm extension`
+                            : "where is the green one"}
+                    </p>
+                    <p>
+                        {data.green.massG !== null
+                            ? `${Math.round(data.green.massG)} g mass`
+                            : "where is the green one"}
+                    </p>
+                </>
+            )}
             <div className="w-36 h-24 flex justify-center items-center">
                 <div
                     className="w-24 h-4 relative"
                     style={{
-                        transform: `rotate(-${ang}rad)`,
+                        transform: `rotate(${data.orange.ang}rad)`,
                     }}
                 >
                     <div
                         className={twMerge(
                             "w-24 h-4 border border-black absolute",
-                            angOk ? "bg-green-500" : "bg-red-500",
+                            data.orange.angOk ? "bg-green-500" : "bg-red-500",
                         )}
                     ></div>
-                    {greenSlide !== null && (
+                    {data.green && (
                         <div
                             className="w-4 h-4 bg-yellow-500"
                             style={{
-                                transform: `translateX(calc(${1 - greenSlide} * 6rem))`,
+                                transform: `translateX(calc(${data.green?.greenSlide} * 6rem))`,
                             }}
                         ></div>
                     )}
@@ -312,9 +523,11 @@ function proj(d: [number, number], x: [number, number]) {
 
 function CameraVideo({
     setImageData,
+    setDetectionResult,
     canvas,
 }: {
     setImageData: (data: ImageData | undefined) => void;
+    setDetectionResult: (res: ObjectDetectorResult) => void;
     canvas: HTMLCanvasElement;
 }) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -342,33 +555,58 @@ function CameraVideo({
             autoPlay
             playsInline
             className="object-contain h-full w-full -scale-x-100"
-            onPlay={() => {
+            onPlay={async () => {
+                console.log(`onplay!`);
                 canvas.width = videoRef.current!.videoWidth;
                 canvas.height = videoRef.current!.videoHeight;
                 const ctx = canvas.getContext("2d", {
                     willReadFrequently: true,
                 });
-                drawCanvasRef.current = requestAnimationFrame(
-                    function animate() {
-                        ctx?.drawImage(
-                            videoRef.current!,
-                            0,
-                            0,
-                            canvas.width,
-                            canvas.height,
-                        );
-                        setImageData(
-                            ctx?.getImageData(
-                                0,
-                                0,
-                                canvas.width,
-                                canvas.height,
-                            ),
-                        );
-                        drawCanvasRef.current = requestAnimationFrame(animate);
+                videoRef.current!.requestVideoFrameCallback(function frame() {
+                    ctx?.drawImage(
+                        videoRef.current!,
+                        0,
+                        0,
+                        canvas.width,
+                        canvas.height,
+                    );
+                    setImageData(
+                        ctx?.getImageData(0, 0, canvas.width, canvas.height),
+                    );
+                    drawCanvasRef.current =
+                        videoRef.current!.requestVideoFrameCallback(frame);
+                });
+                const vision = await FilesetResolver.forVisionTasks(
+                    // path/to/wasm/root
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm",
+                );
+                const objectDetector = await ObjectDetector.createFromOptions(
+                    vision,
+                    {
+                        baseOptions: {
+                            modelAssetPath: `https://storage.googleapis.com/mediapipe-tasks/object_detector/efficientdet_lite0_uint8.tflite`,
+                        },
+                        scoreThreshold: 0.2,
+                        runningMode: "VIDEO",
                     },
                 );
-                console.log(videoRef.current!.videoWidth);
+                videoRef.current!.requestVideoFrameCallback(function frame() {
+                    const res = objectDetector.detectForVideo(
+                        videoRef.current!,
+                        performance.now(),
+                    );
+                    for (const det of res.detections) {
+                        if (det.boundingBox) {
+                            det.boundingBox.originX =
+                                canvas.width -
+                                (det.boundingBox.originX +
+                                    det.boundingBox.width);
+                        }
+                    }
+                    setDetectionResult(res);
+                    drawCanvasRef.current =
+                        videoRef.current!.requestVideoFrameCallback(frame);
+                });
             }}
         ></video>
     );
