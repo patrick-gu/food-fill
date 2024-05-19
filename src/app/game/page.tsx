@@ -383,6 +383,48 @@ function HomeView() {
                             Cal
                         </p>
                     </div>
+                    <button
+                        // disabled={items.length === 0}
+                        className="px-4 py-2 rounded bg-blue-400 text-xl font-bold disabled:bg-gray-400 w-full"
+                        onClick={async () => {
+                            const id = "6649fb043336782fe87c8652";
+                            const response = await fetch(
+                                `https://us-west-2.aws.neurelo.com/rest/users/${id}`,
+                                {
+                                    method: "GET",
+                                    headers: {
+                                        "X-API-KEY":
+                                            "neurelo_9wKFBp874Z5xFw6ZCfvhXdQI0n/IuXyaFnE2pRTKQKV1kIYj2NATYl+L0t52jsR3dHeN/1e+hI+j5Fc1Wh9ozkWhNZt7XhLhxhsp5rJn5oJKz54N2r0UA3Z1vYstHVYlb06mu90fZHBJI+axoLkdT7ooxhL9WN6TnK6qHPSFbrQijhkbTf35C7MeKwT1HOth_DKYSPo6Y4FGUXFdvVb3TcGHezJQ95M+jh9WG/Do6KVw=",
+                                    },
+                                },
+                            );
+                            const data = await response.json();
+                            alert(JSON.stringify(data));
+                            data.data.calorie = [
+                                ...data.data.calorie,
+                                items
+                                    .map(({ cals }) => cals)
+                                    .reduce((a, b) => a + b, 0),
+                            ];
+                            data.data.id = undefined;
+                            alert(JSON.stringify(data));
+                            const res = await fetch(
+                                `https://us-west-2.aws.neurelo.com/rest/users/${id}`,
+                                {
+                                    method: "PATCH",
+                                    headers: {
+                                        "X-API-KEY":
+                                            "neurelo_9wKFBp874Z5xFw6ZCfvhXdQI0n/IuXyaFnE2pRTKQKV1kIYj2NATYl+L0t52jsR3dHeN/1e+hI+j5Fc1Wh9ozkWhNZt7XhLhxhsp5rJn5oJKz54N2r0UA3Z1vYstHVYlb06mu90fZHBJI+axoLkdT7ooxhL9WN6TnK6qHPSFbrQijhkbTf35C7MeKwT1HOth_DKYSPo6Y4FGUXFdvVb3TcGHezJQ95M+jh9WG/Do6KVw=",
+                                        "content-type": "application/json",
+                                    },
+                                    body: JSON.stringify(data.data),
+                                },
+                            );
+                            console.log(res.status);
+                        }}
+                    >
+                        Submit my calories!
+                    </button>
                 </div>
             </div>
         </main>
