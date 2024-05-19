@@ -10,6 +10,7 @@ export default function WelcomePage() {
     const [height, setHeight] = useState('');
     const [weight, setWeight] = useState('');
     const [id, setId] = useState('6649fb043336782fe87c8652');
+    const [edit, setEdit] = useState(false);
 
     useEffect(() => {
         fetchInfo();
