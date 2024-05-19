@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMedal } from '@fortawesome/free-solid-svg-icons';
+import { faHome } from '@fortawesome/free-solid-svg-icons';
 
 type Player = {
     id: number;
@@ -41,6 +43,9 @@ export default function LeaderboardPage() {
 
     return (
         <div className="p-6 bg-gray-100 min-h-screen">
+            <Link href="/welcome">
+                    <FontAwesomeIcon icon={faHome} size="2x" />
+            </Link>
             <h1 className="text-4xl mb-4 text-center text-gray-800">Leaderboard</h1>
             <div className="bg-white shadow-md rounded-lg px-4 py-6 mx-auto max-w-md">
                 {players.map((player, index) => (
