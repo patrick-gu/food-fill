@@ -13,6 +13,8 @@ export default function LeaderboardPage() {
     // Sort players by score in descending order
     players.sort((a, b) => b.score - a.score);
 
+    
+
     return (
         <div className="p-6">
             <h1 className="text-4xl mb-4">Leaderboard</h1>
@@ -20,7 +22,7 @@ export default function LeaderboardPage() {
                 {players.map((player, index) => (
                     <div key={index} className="flex justify-between items-center py-2 border-b">
                         <div className="flex items-center">
-                            <span className="text-lg font-bold">{index + 1}.</span>
+                            <span className="text-lg font-bold w-8">{index + 1}.</span>
                             <span className="ml-4 text-lg">{player.name}</span>
                         </div>
                         <span className="text-lg">{player.score}</span>
