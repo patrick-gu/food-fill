@@ -45,8 +45,6 @@ function HomeView() {
     const [orangePoints, setOrangePoints] = useState<[number, number][]>([]);
     const [greenPoints, setGreenPoints] = useState<[number, number][]>([]);
 
-    // const [recog, setRecog] = useState<{ label: string; score: number }[]>([]);
-
     const detectionRef = useRef<ObjectDetectorResult>({
         detections: [],
     });
@@ -188,25 +186,25 @@ function HomeView() {
         }
     }, [orangeColor, greenColor, cameraDataCanvas, cameraData]);
 
-    // const intervalRef = useRef(0);
-
-    // useEffect(() => {
-    //     intervalRef.current = setInterval(() => {
-    //         cameraDataCanvasRef.current?.toBlob(async (blob) => {
-    //             const res = await fetch("http://localhost:5000/recognize", {
-    //                 method: "POST",
-    //                 body: blob,
-    //                 headers: {
-    //                     "content-type": "image/png",
-    //                 },
-    //             });
-    //             if (res.ok) {
-    //                 setRecog(await res.json());
-    //             }
-    //         });
-    //     }, 1000) as any;
-    //     return () => clearInterval(intervalRef.current);
-    // }, []);
+    const intervalRef = useRef(0);
+    const [recog, setRecog] = useState<{ label: string; score: number }[]>([]);
+    useEffect(() => {
+        intervalRef.current = setInterval(() => {
+            cameraDataCanvasRef.current?.toBlob(async (blob) => {
+                const res = await fetch("http://localhost:5000/recognize", {
+                    method: "POST",
+                    body: blob,
+                    headers: {
+                        "content-type": "image/png",
+                    },
+                });
+                if (res.ok) {
+                    setRecog(await res.json());
+                }
+            });
+        }, 1000) as any;
+        return () => clearInterval(intervalRef.current);
+    }, []);
 
     let detOne: { cat: "apple" | "orange" } | null = null;
     const parsedDets = detection.detections
@@ -314,7 +312,9 @@ function HomeView() {
                         onChange={(event) => setGreenColor(event.target.value)}
                     />
                     <PointInfo data={data} />
-                    <h3 className="text-center text-xl">Detections</h3>
+                    <h3 className="text-center text-xl">
+                        Detections (MediaPipe)
+                    </h3>
                     <ul className="list-disc list-inside">
                         {detection.detections
                             .map((det) =>
@@ -328,6 +328,16 @@ function HomeView() {
                             .map((v) => (
                                 <li key={v}>{v}</li>
                             ))}
+                    </ul>
+                    <h3 className="text-center text-xl">
+                        Alternative model detections
+                    </h3>
+                    <ul className="list-disc list-inside">
+                        {recog.map((det) => (
+                            <li key={JSON.stringify(det)}>
+                                {det.label} {det.score}
+                            </li>
+                        ))}
                     </ul>
                 </div>
                 <div className="bg-white/50 w-96 h-full flex flex-col gap-4 p-4">
