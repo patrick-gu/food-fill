@@ -6,10 +6,18 @@ import { twMerge } from "tailwind-merge";
 export default function Home() {
     const [cameraDataCanvas, setCameraDataCanvas] =
         useState<HTMLCanvasElement | null>(null);
+    const cameraDataCanvasRef = useRef<HTMLCanvasElement | null>(null);
     useEffect(() => {
-        setCameraDataCanvas(document.createElement("canvas"));
+        const canvas = document.createElement("canvas");
+        setCameraDataCanvas(canvas);
+        cameraDataCanvasRef.current = canvas;
     }, []);
-    const [cameraData, setCameraData] = useState<ImageData | undefined>();
+    const cameraDataRef = useRef<ImageData | undefined>();
+    const [cameraData, setCameraDataRaw] = useState<ImageData | undefined>();
+    const setCameraData = (cameraData: ImageData | undefined) => {
+        cameraDataRef.current = cameraData;
+        setCameraDataRaw(cameraData);
+    };
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const [orangeColor, setOrangeColor] = useState("#f47624");
@@ -17,6 +25,8 @@ export default function Home() {
 
     const [orangePoints, setOrangePoints] = useState<[number, number][]>([]);
     const [greenPoints, setGreenPoints] = useState<[number, number][]>([]);
+
+    const [recog, setRecog] = useState<{ label: string; score: number }[]>([]);
 
     useEffect(() => {
         if (!cameraData) return;
@@ -102,6 +112,26 @@ export default function Home() {
         setGreenPoints(greenGroups);
     }, [orangeColor, greenColor, cameraDataCanvas, cameraData]);
 
+    const intervalRef = useRef(0);
+
+    useEffect(() => {
+        intervalRef.current = setInterval(() => {
+            cameraDataCanvasRef.current?.toBlob(async (blob) => {
+                const res = await fetch("http://localhost:5000/recognize", {
+                    method: "POST",
+                    body: blob,
+                    headers: {
+                        "content-type": "image/png",
+                    },
+                });
+                if (res.ok) {
+                    setRecog(await res.json());
+                }
+            });
+        }, 1000) as any;
+        return () => clearInterval(intervalRef.current);
+    }, []);
+
     return (
         <main className="w-screen h-screen relative">
             {cameraDataCanvas && (
@@ -144,6 +174,14 @@ export default function Home() {
                         orangePoints={orangePoints}
                         greenPoints={greenPoints}
                     />
+                    <h3 className="text-xl">Food recognized</h3>
+                    <ul className="list-disc">
+                        {recog.map((obj) => (
+                            <li key={JSON.stringify(obj)}>
+                                {obj.label}: {obj.score}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
                 <div className="bg-white/50 w-96 h-full flex flex-col gap-4 p-4">
                     <h2 className="text-center text-2xl font-bold">
@@ -334,34 +372,34 @@ function CameraVideo({
     );
 }
 
+const dateFormatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Etc/UTC",
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+});
+
 function Timer() {
-    const [startTime] = useState(() => new Date().getTime());
-
-    const [renderDuration, setRenderDuration] = useState("00:00:00");
-
-    const dateFormatter = useMemo(
-        () =>
-            new Intl.DateTimeFormat("en-GB", {
-                timeZone: "Etc/UTC",
-                hour12: false,
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-            }),
-        [],
-    );
+    const startTimeRef = useRef(0);
+    if (startTimeRef.current === 0) {
+        startTimeRef.current = new Date().getTime();
+    }
+    const spanRef = useRef<HTMLElement | null>(null);
 
     const requestRef = useRef(0);
-    const animate = useCallback(() => {
-        setRenderDuration(
-            dateFormatter.format(new Date().getTime() - startTime),
-        );
-        requestRef.current = requestAnimationFrame(animate);
-    }, [dateFormatter, startTime]);
     useEffect(() => {
-        requestRef.current = requestAnimationFrame(animate);
+        requestRef.current = requestAnimationFrame(function animate() {
+            const span = spanRef.current;
+            if (span) {
+                span.innerText = dateFormatter.format(
+                    new Date().getTime() - startTimeRef.current,
+                );
+            }
+            requestRef.current = requestAnimationFrame(animate);
+        });
         return () => cancelAnimationFrame(requestRef.current);
-    }, [animate]);
+    }, []);
 
-    return <>{renderDuration}</>;
+    return <span ref={spanRef}>00:00:00</span>;
 }
