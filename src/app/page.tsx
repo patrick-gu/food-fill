@@ -314,6 +314,7 @@ function HomeView() {
                         onChange={(event) => setGreenColor(event.target.value)}
                     />
                     <PointInfo data={data} />
+                    <h3 className="text-center text-xl">Detections</h3>
                     <ul className="list-disc list-inside">
                         {detection.detections
                             .map((det) =>
