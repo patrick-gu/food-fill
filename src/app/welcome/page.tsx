@@ -1,25 +1,24 @@
 "use client";
+import { redirect } from 'next/navigation';
 import React from 'react';
 
 export default function WelcomePage() {
+
     const handlePlayGame = () => {
         console.log('Play Game button clicked');
-        // Add your logic here
     };
 
     const handleMissions = () => {
         console.log('Missions button clicked');
-        // Add your logic here
     };
 
     const handleStats = () => {
         console.log('Stats button clicked');
-        // Add your logic here
     };
 
     const handleLeaderboard = () => {
         console.log('Leaderboard button clicked');
-        // Add your logic here
+        redirect('/leaderboard')
     };
 
     return (
