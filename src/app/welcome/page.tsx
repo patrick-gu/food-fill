@@ -6,17 +6,18 @@ import Link from 'next/link';
 export default function WelcomePage() {
 
     const [name, setName] = useState('');
-    const [age, setAge] = useState('');
-    const [height, setHeight] = useState('');
-    const [weight, setWeight] = useState('');
+    const [age, setAge] = useState(0);
+    const [height, setHeight] = useState(0);
+    const [weight, setWeight] = useState(0);
     const [id, setId] = useState('6649b0d018a451d672aa0c18');
+    const [edit, setEdit] = useState(false);
 
     useEffect(() => {
         fetchInfo();
     }, []);
 
     const fetchInfo = async () => {
-        const response = await fetch(`https://us-west-2.aws.neurelo.com/rest/missions/${id}`, {
+        const response = await fetch(`https://us-west-2.aws.neurelo.com/rest/users/${id}`, {
             method: "GET",
             headers: {
                 "X-API-KEY": "neurelo_9wKFBp874Z5xFw6ZCfvhXdQI0n/IuXyaFnE2pRTKQKV1kIYj2NATYl+L0t52jsR3dHeN/1e+hI+j5Fc1Wh9ozkWhNZt7XhLhxhsp5rJn5oJKz54N2r0UA3Z1vYstHVYlb06mu90fZHBJI+axoLkdT7ooxhL9WN6TnK6qHPSFbrQijhkbTf35C7MeKwT1HOth_DKYSPo6Y4FGUXFdvVb3TcGHezJQ95M+jh9WG/Do6KVw=",
@@ -35,15 +36,43 @@ export default function WelcomePage() {
     };
 
     const handleAgeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setAge(event.target.value);
+        const value = parseInt(event.target.value);
+        if (isNaN(value)) setAge(0);
+        else setAge(value);
     };
 
     const handleHeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setHeight(event.target.value);
+        const value = parseInt(event.target.value);
+        if (isNaN(value)) setHeight(0);
+        else setHeight(value);
     };
 
     const handleWeightChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setWeight(event.target.value);
+        const value = parseInt(event.target.value);
+        if (isNaN(value)) setWeight(0);
+        else setWeight(value);
+    };
+
+    const handleEditClick = async () => {
+        if (edit) {
+            const response = await fetch(`https://us-west-2.aws.neurelo.com/rest/users/${id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-API-KEY": "neurelo_9wKFBp874Z5xFw6ZCfvhXdQI0n/IuXyaFnE2pRTKQKV1kIYj2NATYl+L0t52jsR3dHeN/1e+hI+j5Fc1Wh9ozkWhNZt7XhLhxhsp5rJn5oJKz54N2r0UA3Z1vYstHVYlb06mu90fZHBJI+axoLkdT7ooxhL9WN6TnK6qHPSFbrQijhkbTf35C7MeKwT1HOth_DKYSPo6Y4FGUXFdvVb3TcGHezJQ95M+jh9WG/Do6KVw=",
+                },
+                body: JSON.stringify({
+                    "name": name,
+                    "age": age,
+                    "height": height,
+                    "weight": weight
+                })
+            });
+            const data = await response.json();
+            console.log(data);
+        }
+
+        setEdit(!edit);
     };
 
     return (
@@ -61,6 +90,7 @@ export default function WelcomePage() {
                                 id="name"
                                 value={name}
                                 onChange={handleNameChange}
+                                disabled={!edit}
                                 className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
                             />
                         </div>
@@ -73,6 +103,7 @@ export default function WelcomePage() {
                                 id="age"
                                 value={age}
                                 onChange={handleAgeChange}
+                                disabled={!edit}
                                 className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
                             />
                         </div>
@@ -87,6 +118,7 @@ export default function WelcomePage() {
                                 id="height"
                                 value={height}
                                 onChange={handleHeightChange}
+                                disabled={!edit}
                                 className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
                             />
                         </div>
@@ -99,10 +131,12 @@ export default function WelcomePage() {
                                 id="weight"
                                 value={weight}
                                 onChange={handleWeightChange}
+                                disabled={!edit}
                                 className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
                             />
                         </div>
                     </div>
+                    <button onClick={handleEditClick}>{edit ? "Save" : "Edit"}</button>
                 </div>
             </div>
         
