@@ -27,6 +27,7 @@ export default function WelcomePage() {
             },
         );
         const data = await response.json();
+        console.log(data);
 
         setName(data.data.name);
         setAge(data.data.age);
