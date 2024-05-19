@@ -28,62 +28,65 @@ export default function WelcomePage() {
 
     return (
         <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
-            <div className="flex flex-col items-center justify-center space-y-0 h-screen bg-gray-100">      
+            <div className="flex flex-col items-center justify-center space-y-0 bg-gray-100">      
                 <div className="mt-0">
                     <h2 className="text-2xl font-semibold">Profile</h2>
-                    <div className="mt-4">
-                        <label htmlFor="name" className="block text-lg font-medium text-gray-700">
-                            Name
-                        </label>
-                        <input
-                            type="text"
-                            id="name"
-                            value={name}
-                            onChange={handleNameChange}
-                            className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
-                        />
+                    <div className="flex space-x-4">
+                        <div className="mt-4">
+                            <label htmlFor="name" className="block text-lg font-medium text-gray-700">
+                                Name
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                value={name}
+                                onChange={handleNameChange}
+                                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
+                            />
+                        </div>
+                        <div className="mt-4">
+                            <label htmlFor="age" className="block text-lg font-medium text-gray-700">
+                                Age
+                            </label>
+                            <input
+                                type="text"
+                                id="age"
+                                value={age}
+                                onChange={handleAgeChange}
+                                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
+                            />
+                        </div>
                     </div>
-                    <div className="mt-4">
-                        <label htmlFor="age" className="block text-lg font-medium text-gray-700">
-                            Age
-                        </label>
-                        <input
-                            type="text"
-                            id="age"
-                            value={age}
-                            onChange={handleAgeChange}
-                            className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
-                        />
-                    </div>
-                    <div className="mt-4">
-                        <label htmlFor="height" className="block text-lg font-medium text-gray-700">
-                            Height
-                        </label>
-                        <input
-                            type="text"
-                            id="height"
-                            value={height}
-                            onChange={handleHeightChange}
-                            className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
-                        />
-                    </div>
-                    <div className="mt-4">
-                        <label htmlFor="weight" className="block text-lg font-medium text-gray-700">
-                            Weight
-                        </label>
-                        <input
-                            type="text"
-                            id="weight"
-                            value={weight}
-                            onChange={handleWeightChange}
-                            className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
-                        />
+                    <div className="flex space-x-4">
+                        <div className="mt-4">
+                            <label htmlFor="height" className="block text-lg font-medium text-gray-700">
+                                Height
+                            </label>
+                            <input
+                                type="text"
+                                id="height"
+                                value={height}
+                                onChange={handleHeightChange}
+                                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
+                            />
+                        </div>
+                        <div className="mt-4">
+                            <label htmlFor="weight" className="block text-lg font-medium text-gray-700">
+                                Weight
+                            </label>
+                            <input
+                                type="text"
+                                id="weight"
+                                value={weight}
+                                onChange={handleWeightChange}
+                                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
-
-
-            <Link href="/" className="mt-10 mb-4 px-32 py-6 text-3xl font-bold text-white bg-gray-500 rounded-lg shadow-lg hover:bg-blue-600">
+        
+            <Link href="/" className="mt-20 mb-4 px-32 py-6 text-3xl font-bold text-white bg-gray-500 rounded-lg shadow-lg hover:bg-blue-600">
                 Fill Your Mouth!
             </Link>
             <div className="flex space-x-4">
@@ -97,7 +100,7 @@ export default function WelcomePage() {
                     Leaderboard
                 </Link>
             </div>
-            <div className="pt-4 text-lg text-gray-600">
+            <div className="mt-2 pt-4 text-lg text-gray-600">
                 Made with <span className="text-red-500">❤️</span> at HawkHacks
             </div>
         </div>
