@@ -399,7 +399,6 @@ function HomeView() {
                                 },
                             );
                             const data = await response.json();
-                            alert(JSON.stringify(data));
                             data.data.calorie = [
                                 ...data.data.calorie,
                                 items
@@ -407,7 +406,7 @@ function HomeView() {
                                     .reduce((a, b) => a + b, 0),
                             ];
                             data.data.id = undefined;
-                            alert(JSON.stringify(data));
+                            data.data.score += 3;
                             const res = await fetch(
                                 `https://us-west-2.aws.neurelo.com/rest/users/${id}`,
                                 {
