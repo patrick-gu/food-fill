@@ -31,54 +31,16 @@ export default function MissionsPage() {
 
     return (
 
-        // <div className="p-6">
-        //     <h1 className="text-4xl mb-4">Missions</h1>
-        //     <div className="bg-white shadow-md rounded-lg px-4 py-6">
-        //         <ul className="overflow-y-auto max-h-96">
-        //             {missions.map((mission) => (
-        //                 <li key={mission.id} className="mb-4">
-        //                     <h2 className="text-xl font-bold">{mission.id}</h2>
-        //                     <p>{mission.description}</p>
-        //                     <p>{mission.score}</p>
-        //                 </li>
-        //             ))}
-        //         </ul>
-        //     </div>
-        // </div>
-        // <div className="p-6">
-        //     <h1 className="text-4xl mb-4">Missions</h1>
-        //     <div className="bg-white shadow-md rounded-lg px-4 py-6">
-        //         {missions.map((mission) => (
-        //             <div key={mission.id} className="flex items-center justify-between">
-        //                 <span className="font-bold text-lg">{mission.description}</span>
-        //             </div>
-        //         ))}
-        //     </div>
-        // </div>
-        <div className="p-6 bg-gray-100 min-h-screen">
-            <h1 className="text-4xl mb-4 text-center text-gray-800">Leaderboard</h1>
-            <div className="bg-white shadow-md rounded-lg px-4 py-6 mx-auto max-w-md">
-                {/* {players.map((player, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b">
-                        <div className="flex items-center">
-                            <span className="text-lg font-bold w-8">
-                                {index < 3 ? (
-                                    <FontAwesomeIcon 
-                                        icon={faMedal}
-                                        className={index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-400' : 'text-yellow-600'} /> 
-                                ) : index + 1}
-                            </span>
-                            <span className="ml-4 text-lg text-gray-700">{player.name}</span>
-                        </div>
-                        <span className="text-lg text-gray-700">{player.score}</span>
-                    </div>
-                ))} */}
-                {missions.map((mission) => (
-                    <div key={mission.id} className="flex items-center justify-between">
-                        <span className="font-bold text-lg">{mission.description}</span>
-                    </div>
-                ))}
+<div className="p-6 bg-gray-100 min-h-screen">
+    <h1 className="text-4xl mb-4 text-center text-gray-800">Missions</h1>
+    <div className="bg-white shadow-md rounded-lg px-4 py-6 mx-auto max-w-xxl">
+        {missions.map((mission) => (
+            <div key={mission.id} className="flex justify-between items-center py-2 border-b">
+                <span className="text-lg">{mission.description}</span>
+                <span className="text-lg font-bold">{mission.score} points</span>
             </div>
-        </div>
+        ))}
+    </div>
+</div>
     );
 }
