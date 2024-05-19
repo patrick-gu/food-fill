@@ -1,25 +1,41 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMedal } from '@fortawesome/free-solid-svg-icons';
 
-export default function LeaderboardPage() {
-    const [players, setPlayers] = useState([
-        { name: 'Player 1', score: 100 },
-        { name: 'Player 2', score: 90 },
-        { name: 'Player 3', score: 80 },
-        { name: 'Player 4', score: 70 },
-        { name: 'Player 5', score: 60 },
-        { name: 'Player 6', score: 50 },
-        { name: 'Player 7', score: 40 },
-        { name: 'Player 8', score: 30 },
-        { name: 'Player 9', score: 20 },
-        { name: 'Player 10', score: 10 },
-        // Add more players as needed
-    ]);
+type Player = {
+    id: number;
+    age: number;
+    height: number;
+    weight: number;
+    score: number;
+    target: string;
+    missions: string[];
+    calorie: number;
+    name: string;
+}; 
 
+export default function LeaderboardPage() {
+    const [players, setPlayers] = useState<Player[]>([]);
+
+    useEffect(() => {
+        fetchMissions();
+    }, []);
+
+    const fetchMissions = async () => {
+        const response = await fetch("https://us-west-2.aws.neurelo.com/rest/users", {
+            method: "GET",
+            headers: {
+                "X-API-KEY": "neurelo_9wKFBp874Z5xFw6ZCfvhXdQI0n/IuXyaFnE2pRTKQKV1kIYj2NATYl+L0t52jsR3dHeN/1e+hI+j5Fc1Wh9ozkWhNZt7XhLhxhsp5rJn5oJKz54N2r0UA3Z1vYstHVYlb06mu90fZHBJI+axoLkdT7ooxhL9WN6TnK6qHPSFbrQijhkbTf35C7MeKwT1HOth_DKYSPo6Y4FGUXFdvVb3TcGHezJQ95M+jh9WG/Do6KVw=",
+            }
+        });
+        const data = await response.json();
+
+        console.log(data.data);
+        setPlayers(data.data);
+    };
     // Sort players by score in descending order
     players.sort((a, b) => b.score - a.score);
 
