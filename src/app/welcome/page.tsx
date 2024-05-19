@@ -27,9 +27,9 @@ export default function WelcomePage() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center space-y-0 h-screen bg-gray-100">
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
             <div className="flex flex-col items-center justify-center space-y-0 h-screen bg-gray-100">      
-                <div className="mt-8">
+                <div className="mt-0">
                     <h2 className="text-2xl font-semibold">Profile</h2>
                     <div className="mt-4">
                         <label htmlFor="name" className="block text-lg font-medium text-gray-700">
@@ -98,7 +98,7 @@ export default function WelcomePage() {
                 </Link>
             </div>
             <div className="pt-4 text-lg text-gray-600">
-                Made with <span className="text-red-500">❤️</span> by the Food Fill team
+                Made with <span className="text-red-500">❤️</span> at HawkHacks
             </div>
         </div>
     );
