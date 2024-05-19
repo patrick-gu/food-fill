@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { CookiesProvider, useCookies } from 'react-cookie';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMedal } from '@fortawesome/free-solid-svg-icons';
+import { faHome } from '@fortawesome/free-solid-svg-icons';
+import Link from 'next/link';
 
 type Mission = {
     id: string;
@@ -30,17 +31,19 @@ export default function MissionsPage() {
     };
 
     return (
-
-<div className="p-6 bg-gray-100 min-h-screen">
-    <h1 className="text-4xl mb-4 text-center text-gray-800">Missions</h1>
-    <div className="bg-white shadow-md rounded-lg px-4 py-6 mx-auto max-w-xxl">
-        {missions.map((mission) => (
-            <div key={mission.id} className="flex justify-between items-center py-2 border-b">
-                <span className="text-lg">{mission.description}</span>
-                <span className="text-lg font-bold">{mission.score} points</span>
+        <div className="p-6 bg-gray-100 min-h-screen">
+            <Link href="/welcome">
+                    <FontAwesomeIcon icon={faHome} size="2x" />
+            </Link>
+            <h1 className="text-4xl mb-4 text-center text-gray-800">Missions</h1>
+            <div className="bg-white shadow-md rounded-lg px-4 py-6 mx-auto max-w-xxl">
+                {missions.map((mission) => (
+                    <div key={mission.id} className="flex justify-between items-center py-2 border-b">
+                        <span className="text-lg">{mission.description}</span>
+                        <span className="text-lg font-bold">{mission.score} points</span>
+                    </div>
+                ))}
             </div>
-        ))}
-    </div>
-</div>
-    );
+        </div>
+            );
 }
